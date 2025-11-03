@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Registrarse{% endblock %}
+{% block content %}
+<h2>Crear Cuenta</h2>
+
+{% if form.errors %}
+<div class="alert alert-danger">
+    <strong>Atención:</strong> Por favor corrige los errores marcados abajo.
+</div>
+{% endif %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="mb-3">
+        <label>Nombre de usuario</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+            <div class="text-danger">{{ form.username.errors }}</div>
+        {% endif %}
+    </div>
+
+    <div class="mb-3">
+        <label>Contraseña</label>
+        {{ form.password1 }}
+        {% if form.password1.errors %}
+            <div class="text-danger">{{ form.password1.errors }}</div>
+        {% endif %}
+    </div>
+
+    <div class="mb-3">
+        <label>Confirmar contraseña</label>
+        {{ form.password2 }}
+        {% if form.password2.errors %}
+            <div class="text-danger">{{ form.password2.errors }}</div>
+        {% endif %}
+    </div>
+
+    <button type="submit" class="btn btn-success">Registrarse</button>
+    <a href="{% url 'login' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

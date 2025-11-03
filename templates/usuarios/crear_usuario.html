@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Usuario - Tienda Autos{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-plus"></i> Crear Nuevo Usuario
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                        <i class="bi bi-info-circle"></i> {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+                {% endif %}
+                
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Información de Cuenta -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 border-bottom pb-2">Información de Cuenta</legend>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.username.label_tag }}
+                                {{ form.username }}
+                                {% if form.username.errors %}
+                                    <div class="text-danger small mt-1">
+                                        <i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                {% if form.username.help_text %}
+                                    <small class="form-text text-muted d-block mt-1">{{ form.username.help_text|safe }}</small>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.email.label_tag }}
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">
+                                        <i class="bi bi-exclamation-circle"></i> {{ form.email.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.password1.label_tag }}
+                                {{ form.password1 }}
+                                {% if form.password1.errors %}
+                                    <div class="text-danger small mt-1">
+                                        <i class="bi bi-exclamation-circle"></i> {{ form.password1.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                {% if form.password1.help_text %}
+                                    <small class="form-text text-muted d-block mt-1">{{ form.password1.help_text|safe }}</small>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.password2.label_tag }}
+                                {{ form.password2 }}
+                                {% if form.password2.errors %}
+                                    <div class="text-danger small mt-1">
+                                        <i class="bi bi-exclamation-circle"></i> {{ form.password2.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </fieldset>
+                    
+                    <!-- Información Personal -->
+                    <fieldset class="mb-4">
+                        <legend class="h6 border-bottom pb-2">Información Personal</legend>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.first_name.label_tag }}
+                                {{ form.first_name }}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.last_name.label_tag }}
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.phone.label_tag }}
+                                {{ form.phone }}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.role.label_tag }}
+                                {{ form.role }}
+                                <small class="form-text text-muted d-block mt-1">
+                                    <i class="bi bi-info-circle"></i> Selecciona el rol del usuario
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.address.label_tag }}
+                            {{ form.address }}
+                        </div>
+                    </fieldset>
+                    
+                    <!-- Botones -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'listar_usuarios' %}" class="btn btn-secondary me-md-2">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Crear Usuario
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control, .form-select {
+        border-radius: 0.375rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    fieldset legend {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 1rem;
+    }
+</style>
+
+{% endblock %}

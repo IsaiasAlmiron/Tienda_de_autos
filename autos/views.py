@@ -1,0 +1,312 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse_lazy
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+from .models import Producto, Cliente,CustomUser
+from django.contrib.auth.decorators import login_required, user_passes_test
+import csv
+from django.contrib import messages
+from django.contrib.auth.forms import UserCreationForm
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from io import BytesIO
+from .forms import CustomUserCreationForm,CustomUserEditForm  # ← AGREGAR
+
+
+
+
+# === PRODUCTOS ===
+class ProductoListView(LoginRequiredMixin, ListView):
+    model = Producto
+    template_name = 'productos/producto_list.html'
+    context_object_name = 'productos'
+
+class ProductoCreateView(LoginRequiredMixin, CreateView):
+    model = Producto
+    fields = ['nombre', 'modelo', 'precio', 'stock']
+    template_name = 'productos/producto_form.html'
+    success_url = reverse_lazy('producto_list')
+
+class ProductoUpdateView(LoginRequiredMixin, UpdateView):
+    model = Producto
+    fields = ['nombre', 'modelo', 'precio', 'stock']
+    template_name = 'productos/producto_form.html'
+    success_url = reverse_lazy('producto_list')
+
+class ProductoDeleteView(LoginRequiredMixin, DeleteView):
+    model = Producto
+    template_name = 'productos/producto_confirm_delete.html'
+    success_url = reverse_lazy('producto_list')
+
+
+# === CLIENTES ===
+class ClienteListView(LoginRequiredMixin, ListView):
+    model = Cliente
+    template_name = 'clientes/cliente_list.html'
+    context_object_name = 'clientes'
+
+class ClienteCreateView(LoginRequiredMixin, CreateView):
+    model = Cliente
+    fields = ['ruc', 'nombre', 'apellido', 'telefono', 'email', 'direccion']
+    template_name = 'clientes/cliente_form.html'
+    success_url = reverse_lazy('cliente_list')
+
+class ClienteUpdateView(LoginRequiredMixin, UpdateView):
+    model = Cliente
+    fields = ['nombre', 'apellido', 'telefono', 'email', 'direccion']
+    template_name = 'clientes/cliente_form.html'
+    success_url = reverse_lazy('cliente_list')
+
+class ClienteDeleteView(LoginRequiredMixin, DeleteView):
+    model = Cliente
+    template_name = 'clientes/cliente_confirm_delete.html'
+    success_url = reverse_lazy('cliente_list')
+
+
+# ========== VERIFICACIÓN DE PERMISOS ==========
+
+def es_administrador(user):
+    """Verifica si el usuario es superuser o tiene rol admin"""
+    return user.is_superuser or (user.is_authenticated and user.role == 'admin')
+
+
+# ========== VISTAS DE USUARIO ==========
+
+@login_required(login_url='login')
+def index(request):
+    """Página de inicio"""
+    productos_count = Producto.objects.count()
+    clientes_count = Cliente.objects.count()
+    usuarios_count = CustomUser.objects.count()
+    
+    context = {
+        'productos_count': productos_count,
+        'clientes_count': clientes_count,
+        'usuarios_count': usuarios_count,
+    }
+    return render(request, 'index.html', context)
+
+
+@login_required(login_url='login')
+@user_passes_test(es_administrador, login_url='index')
+def crear_usuario(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)  # ← CAMBIAR AQUÍ
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Usuario creado exitosamente.')
+            return redirect('listar_usuarios')
+    else:
+        form = CustomUserCreationForm()  # ← CAMBIAR AQUÍ
+    
+    return render(request, 'usuarios/crear_usuario.html', {'form': form})
+
+@login_required(login_url='login')
+@user_passes_test(es_administrador, login_url='index')
+def listar_usuarios(request):
+    """Listar todos los usuarios (SOLO ADMIN)"""
+    usuarios = CustomUser.objects.all().order_by('-date_joined')
+    return render(request, 'usuarios/listar_usuarios.html', {'usuarios': usuarios})
+
+
+# ========== VISTAS DE EXPORTACIÓN (CSV) ==========
+
+@login_required(login_url='login')
+def exportar_productos_csv(request):
+    """Exportar productos a CSV"""
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="productos.csv"'
+    response.write('\ufeff')  # BOM para UTF-8 en Excel
+    
+    writer = csv.writer(response)
+    writer.writerow(['ID', 'Nombre', 'Modelo', 'Precio', 'Stock'])
+    
+    for producto in Producto.objects.all():
+        writer.writerow([
+            producto.id,
+            producto.nombre,
+            producto.modelo.nombre if producto.modelo else 'N/A',
+            f"${producto.precio}",
+            producto.stock
+        ])
+    
+    return response
+
+
+@login_required(login_url='login')
+def exportar_clientes_csv(request):
+    """Exportar clientes a CSV"""
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="clientes.csv"'
+    response.write('\ufeff')
+    
+    writer = csv.writer(response)
+    writer.writerow(['RUC', 'Nombre', 'Apellido', 'Teléfono', 'Email', 'Dirección'])
+    
+    for cliente in Cliente.objects.all():
+        writer.writerow([
+            cliente.ruc,
+            cliente.nombre,
+            cliente.apellido,
+            cliente.telefono,
+            cliente.email,
+            cliente.direccion
+        ])
+    
+    return response
+
+
+# ========== VISTAS DE EXPORTACIÓN (PDF) ==========
+
+@login_required(login_url='login')
+def exportar_productos_pdf(request):
+    """Exportar productos a PDF"""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    elements = []
+    
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=20,
+        textColor=colors.HexColor('#2c3e50'),
+        spaceAfter=20,
+        alignment=1
+    )
+    
+    title = Paragraph("Reporte de Productos", title_style)
+    elements.append(title)
+    elements.append(Spacer(1, 12))
+    
+    # Datos
+    data = [['ID', 'Nombre', 'Modelo', 'Precio', 'Stock']]
+    
+    for producto in Producto.objects.all():
+        data.append([
+            str(producto.id),
+            producto.nombre,
+            producto.modelo.nombre if producto.modelo else 'N/A',
+            f"${producto.precio}",
+            str(producto.stock)
+        ])
+    
+    # Tabla
+    table = Table(data, colWidths=[0.8*inch, 2.5*inch, 1.5*inch, 1*inch, 1*inch])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    
+    elements.append(table)
+    doc.build(elements)
+    
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="productos.pdf"'
+    return response
+
+
+@login_required(login_url='login')
+def exportar_clientes_pdf(request):
+    """Exportar clientes a PDF"""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    elements = []
+    
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=20,
+        textColor=colors.HexColor('#2c3e50'),
+        spaceAfter=20,
+        alignment=1
+    )
+    
+    title = Paragraph("Reporte de Clientes", title_style)
+    elements.append(title)
+    elements.append(Spacer(1, 12))
+    
+    # Datos
+    data = [['RUC', 'Nombre', 'Apellido', 'Teléfono', 'Email']]
+    
+    for cliente in Cliente.objects.all():
+        data.append([
+            cliente.ruc,
+            cliente.nombre,
+            cliente.apellido,
+            cliente.telefono,
+            cliente.email
+        ])
+    
+    # Tabla
+    table = Table(data, colWidths=[1.2*inch, 1.8*inch, 1.8*inch, 1.5*inch, 2*inch])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    
+    elements.append(table)
+    doc.build(elements)
+    
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="clientes.pdf"'
+    return response 
+
+
+@login_required(login_url='login')
+@user_passes_test(es_administrador, login_url='index')
+def editar_usuario(request, pk):
+    """Editar usuario (SOLO ADMIN)"""
+    usuario = get_object_or_404(CustomUser, pk=pk)
+    
+    if request.method == 'POST':
+        form = CustomUserEditForm(request.POST, instance=usuario)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Usuario {usuario.username} actualizado exitosamente.')
+            return redirect('listar_usuarios')
+    else:
+        form = CustomUserEditForm(instance=usuario)
+    
+    return render(request, 'usuarios/editar_usuario.html', {'form': form, 'usuario': usuario})
+
+
+@login_required(login_url='login')
+@user_passes_test(es_administrador, login_url='index')
+def eliminar_usuario(request, pk):
+    """Eliminar usuario (SOLO ADMIN)"""
+    usuario = get_object_or_404(CustomUser, pk=pk)
+    
+    # No permitir eliminarse a sí mismo
+    if usuario.id == request.user.id:
+        messages.error(request, 'No puedes eliminar tu propia cuenta.')
+        return redirect('listar_usuarios')
+    
+    if request.method == 'POST':
+        username = usuario.username
+        usuario.delete()
+        messages.success(request, f'Usuario {username} eliminado correctamente.')
+        return redirect('listar_usuarios')
+    
+    return render(request, 'usuarios/confirmar_eliminar.html', {'usuario': usuario})
