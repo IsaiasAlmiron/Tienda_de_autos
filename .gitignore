@@ -82,6 +82,24 @@ target/
 profile_default/
 ipython_config.py
 
+# Archivos locales de configuración y datos
+*.sqlite3
+*.sqlite3-journal
+
+# Archivos de ReportLab (PDF generados)
+*.pdf
+
+# Archivos temporales del sistema
+Thumbs.db
+.DS_Store
+
+# Archivos de entorno o configuración de IDE
+.vscode/
+.idea/
+
+# Archivos locales del entorno Python
+*.env
+
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is
 #   intended to run in multiple environments; otherwise, check them in:
