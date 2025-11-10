@@ -1,10 +1,10 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
-from .models import Producto, Cliente,CustomUser
+from .models import Producto, Cliente,CustomUser,Venta, DetalleVenta,Marca
 from django.contrib.auth.decorators import login_required, user_passes_test
 import csv
 from django.contrib import messages
@@ -16,10 +16,31 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from io import BytesIO
-from .forms import CustomUserCreationForm,CustomUserEditForm  # ← AGREGAR
+from .forms import CustomUserCreationForm,CustomUserEditForm,DetalleVentaForm,VentaForm  # ← AGREGAR
+from .models import Marca
+from django.forms import modelformset_factory
 
+class MarcaListView(LoginRequiredMixin, ListView):
+    model = Marca
+    template_name = 'marcas/marca_list.html'
+    context_object_name = 'marcas'
 
+class MarcaCreateView(LoginRequiredMixin, CreateView):
+    model = Marca
+    fields = ['nombre']
+    template_name = 'marcas/marca_form.html'
+    success_url = reverse_lazy('marca_list')
 
+class MarcaUpdateView(LoginRequiredMixin, UpdateView):
+    model = Marca
+    fields = ['nombre']
+    template_name = 'marcas/marca_form.html'
+    success_url = reverse_lazy('marca_list')
+
+class MarcaDeleteView(LoginRequiredMixin, DeleteView):
+    model = Marca
+    template_name = 'marcas/marca_confirm_delete.html'
+    success_url = reverse_lazy('marca_list')
 
 # === PRODUCTOS ===
 class ProductoListView(LoginRequiredMixin, ListView):
@@ -29,13 +50,13 @@ class ProductoListView(LoginRequiredMixin, ListView):
 
 class ProductoCreateView(LoginRequiredMixin, CreateView):
     model = Producto
-    fields = ['nombre', 'modelo', 'precio', 'stock']
+    fields = ['marca','nombre',  'modelo', 'precio', 'stock']
     template_name = 'productos/producto_form.html'
     success_url = reverse_lazy('producto_list')
 
 class ProductoUpdateView(LoginRequiredMixin, UpdateView):
     model = Producto
-    fields = ['nombre', 'modelo', 'precio', 'stock']
+    fields = [ 'marca','nombre', 'modelo', 'precio', 'stock']
     template_name = 'productos/producto_form.html'
     success_url = reverse_lazy('producto_list')
 
@@ -67,8 +88,24 @@ class ClienteDeleteView(LoginRequiredMixin, DeleteView):
     model = Cliente
     template_name = 'clientes/cliente_confirm_delete.html'
     success_url = reverse_lazy('cliente_list')
+# ========== Ventas==========
+class VentaListView(LoginRequiredMixin, ListView):
+    model = Venta
+    template_name = 'ventas/venta_list.html'
+    context_object_name = 'ventas'
+class VentaCreateView(LoginRequiredMixin, CreateView):
+    model = Venta
+    fields = ['cliente']  # Quitar 'vendedor' del formulario, se asigna automáticamente
+    template_name = 'ventas/venta_form.html'
+    success_url = reverse_lazy('venta_list')
 
+    def form_valid(self, form):
+        form.instance.vendedor = self.request.user
+        return super().form_valid(form)
 
+class VentaDetailView(LoginRequiredMixin, DetailView):
+    model = Venta
+    template_name = 'ventas/venta_detail.html'
 # ========== VERIFICACIÓN DE PERMISOS ==========
 
 def es_administrador(user):
@@ -310,3 +347,36 @@ def eliminar_usuario(request, pk):
         return redirect('listar_usuarios')
     
     return render(request, 'usuarios/confirmar_eliminar.html', {'usuario': usuario})
+
+
+@login_required
+def crear_venta(request):
+    DetalleFormSet = modelformset_factory(DetalleVenta, form=DetalleVentaForm, extra=1)
+    
+    if request.method == "POST":
+        venta_form = VentaForm(request.POST)
+        formset = DetalleFormSet(request.POST, queryset=DetalleVenta.objects.none())
+        
+        if venta_form.is_valid() and formset.is_valid():
+            venta = venta_form.save(commit=False)
+            venta.vendedor = request.user
+            venta.save()
+            total = 0
+            for detalle_form in formset:
+                if detalle_form.cleaned_data:
+                    detalle = detalle_form.save(commit=False)
+                    detalle.venta = venta
+                    detalle.precio_unitario = detalle.producto.precio
+                    detalle.save()
+                    total += detalle.cantidad * detalle.precio_unitario
+            venta.total = total
+            venta.save()
+            return redirect('venta_list')
+    else:
+        venta_form = VentaForm()
+        formset = DetalleFormSet(queryset=DetalleVenta.objects.none())
+
+    return render(request, 'ventas/venta_form.html', {
+        'venta_form': venta_form,
+        'formset': formset,
+    })

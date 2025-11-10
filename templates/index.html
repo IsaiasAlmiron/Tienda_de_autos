@@ -6,27 +6,27 @@
 <div class="row mt-5">
     <div class="col-md-8 mx-auto">
         <h1 class="mb-4">
-            <i class="bi bi-car-front-fill"></i> Bienvenido, {{ user.username }}!
+            <i class="bi bi-car-front-fill"></i> Bienvenido, {{ request.user.username }}!
         </h1>
         
         <div class="alert alert-info">
             <i class="bi bi-info-circle"></i> 
-            Rol: <strong>{{ user.get_role_display }}</strong>
+            Rol: <strong>{{ request.user.get_role_display }}</strong>
         </div>
         
         <!-- Estadísticas -->
         <div class="row mb-4">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
-                        <h5 class="card-title">Productos</h5>
+                        <h5 class="card-title">Autos</h5>
                         <h2 class="text-primary">{{ productos_count }}</h2>
                         <a href="/productos/" class="btn btn-sm btn-primary">Ver</a>
                     </div>
                 </div>
             </div>
             
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
                         <h5 class="card-title">Clientes</h5>
@@ -36,17 +36,27 @@
                 </div>
             </div>
             
-            <div class="col-md-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Ventas</h5>
+                        <h2 class="text-warning">{{ ventas_count }}</h2>
+                        <a href="/ventas/" class="btn btn-sm btn-warning">Ver</a>
+                    </div>
+                </div>
+            </div>
+            
+            {% if request.user.role == 'admin' %}
+            <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
                         <h5 class="card-title">Usuarios</h5>
                         <h2 class="text-info">{{ usuarios_count }}</h2>
-                        {% if request.user.is_superuser or request.user.role == 'admin' %}
                         <a href="{% url 'listar_usuarios' %}" class="btn btn-sm btn-info">Ver</a>
-                        {% endif %}
                     </div>
                 </div>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>

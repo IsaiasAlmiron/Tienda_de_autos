@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle Venta #{{ object.id }}{% endblock %}
+
+{% block content %}
+<div class="mt-4">
+    <h3>Detalle de Venta #{{ object.id }}</h3>
+    <p><strong>Cliente:</strong> {{ object.cliente }}</p>
+    <p><strong>Vendedor:</strong> {{ object.vendedor.username }}</p>
+    <p><strong>Fecha:</strong> {{ object.fecha|date:"d/m/Y H:i" }}</p>
+    <p><strong>Total:</strong> ${{ object.total }}</p>
+
+    <hr>
+
+    <h5>Productos Vendidos</h5>
+    {% if object.detalles.all %}
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in object.detalles.all %}
+            <tr>
+                <td>{{ detalle.producto.nombre }}</td>
+                <td>{{ detalle.cantidad }}</td>
+                <td>${{ detalle.precio_unitario }}</td>
+                <td>${{ detalle.get_subtotal }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No hay productos agregados a esta venta.</p>
+    {% endif %}
+
+    <a href="{% url 'venta_list' %}" class="btn btn-secondary mt-3">
+        <i class="bi bi-arrow-left"></i> Volver al listado
+    </a>
+</div>
+{% endblock %}

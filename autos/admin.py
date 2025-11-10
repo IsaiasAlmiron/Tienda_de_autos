@@ -1,17 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import Marca, Modelo, Producto, Cliente, CustomUser
+from .models import Marca, Producto, Cliente, CustomUser
 
 @admin.register(Marca)
 class MarcaAdmin(admin.ModelAdmin):
     list_display = ('id', 'nombre')
     search_fields = ('nombre',)
 
-@admin.register(Modelo)
-class ModeloAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nombre', 'marca')
-    list_filter = ('marca',)
-    search_fields = ('nombre',)
+
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):

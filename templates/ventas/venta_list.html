@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Listado de Ventas{% endblock %}
+
+{% block content %}
+<div class="mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Listado de Ventas</h2>
+        <a href="{% url 'venta_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nueva Venta
+        </a>
+    </div>
+
+    {% if ventas %}
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Vendedor</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for venta in ventas %}
+            <tr>
+                <td>{{ venta.id }}</td>
+                <td>{{ venta.cliente }}</td>
+                <td>{{ venta.vendedor.username }}</td>
+                <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
+                <td>${{ venta.total }}</td>
+                <td>
+                    <a href="{% url 'venta_detail' venta.id %}" class="btn btn-sm btn-info">
+                        <i class="bi bi-eye"></i> Ver
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info text-center">No hay ventas registradas.</div>
+    {% endif %}
+</div>
+{% endblock %}
