@@ -77,9 +77,18 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',  # El archivo de base de datos se almacenará en el directorio del proyecto
     }
 }
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",  # Asegúrate de que este directorio exista
+]
+
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+
 
 
 # Password validation

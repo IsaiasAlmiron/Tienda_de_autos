@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+  django-web:
+    container_name: django-web
+    build:
+      context: ..  # Apunta al directorio raíz del proyecto
+      dockerfile: docker/Dockerfile  # Ruta al Dockerfile dentro de la carpeta docker
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ..:/app  # Montamos el directorio raíz del proyecto en /app dentro del contenedor
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+    # Ya no dependeremos de db porque no necesitamos un contenedor para PostgreSQL en este momento
+
+# Eliminamos la sección db ya que no necesitamos el contenedor de PostgreSQL
+# db:
+#   image: postgres:13
+#   environment:
+#     - POSTGRES_USER=djangouser
+#     - POSTGRES_PASSWORD=django123
+#     - POSTGRES_DB=djangodb
+#   volumes:
+#     - postgres_data:/var/lib/postgresql/data
+
+# Volúmenes si alguna vez decides usar la base de datos PostgreSQL
+# volumes:
+#   postgres_data:
