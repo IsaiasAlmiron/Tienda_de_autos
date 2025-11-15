@@ -1,24 +1,78 @@
 {% extends 'base.html' %}
 {% block title %}Listado de Productos{% endblock %}
+
 {% block content %}
-<h2>Listado de Productos</h2>
-<a href="{% url 'producto_create' %}" class="btn btn-primary mb-2">Nuevo Producto</a>
-<table class="table table-bordered table-striped">
-    <tr><th>ID</th><th>Nombre</th><th>Modelo</th><th>Precio</th><th>Stock</th><th>Acciones</th></tr>
-    {% for p in productos %}
-    <tr>
-        <td>{{ p.id }}</td>
-        <td>{{ p.nombre }}</td>
-        <td>{{ p.modelo }}</td>
-        <td>{{ p.precio }}</td>
-        <td>{{ p.stock }}</td>
-        <td>
-            <a href="{% url 'producto_update' p.id %}" class="btn btn-sm btn-warning">Editar</a>
-            <a href="{% url 'producto_delete' p.id %}" class="btn btn-sm btn-danger">Eliminar</a>
-        </td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="6" class="text-center">No hay productos registrados.</td></tr>
-    {% endfor %}
-</table>
+<div class="container mt-4 list-page">
+
+    <!-- Encabezado de la lista -->
+    <div class="list-header d-flex flex-wrap align-items-center justify-content-between mb-3">
+        <div>
+            <h2 class="list-title">Autos</h2>
+            <p class="list-subtitle mb-0">
+                Catálogo de autos disponibles en la tienda.
+            </p>
+        </div>
+        <a href="{% url 'producto_create' %}" class="btn btn-primary mt-3 mt-md-0">
+            <i class="bi bi-plus-circle"></i> Nuevo Producto
+        </a>
+    </div>
+
+    {% if productos %}
+        <div class="row g-3">
+            {% for p in productos %}
+            <div class="col-md-6 col-lg-4">
+                <div class="entity-card">
+                    <div class="entity-card__header">
+                        <h5 class="entity-name">
+                            {{ p.nombre }}
+                        </h5>
+                        <span class="entity-tag">
+                            ID #{{ p.id }}
+                        </span>
+                    </div>
+
+                    <div class="entity-card__body">
+                        <p class="entity-line">
+                            <i class="bi bi-car-front"></i>
+                            Modelo: {{ p.modelo|default:"Sin modelo" }}
+                        </p>
+                        <p class="entity-line">
+                            <i class="bi bi-cash-coin"></i>
+                            Precio: {{ p.precio }} Gs
+                        </p>
+                        <p class="entity-line">
+                            <i class="bi bi-box-seam"></i>
+                            Stock: 
+                            {% if p.stock > 0 %}
+                                {{ p.stock }}
+                            {% else %}
+                                <span class="text-danger">Sin stock</span>
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="entity-card__actions">
+                        <a href="{% url 'producto_update' p.id %}" class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                        <a href="{% url 'producto_delete' p.id %}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i> Eliminar
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-car-front"></i>
+            <h5>No hay productos registrados.</h5>
+            <p>Agregá tu primer auto al catálogo.</p>
+            <a href="{% url 'producto_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nuevo Producto
+            </a>
+        </div>
+    {% endif %}
+
+</div>
 {% endblock %}

@@ -3,61 +3,62 @@
 {% block title %}Inicio - Tienda Autos{% endblock %}
 
 {% block content %}
-<div class="row mt-5">
-    <div class="col-md-8 mx-auto">
-        <h1 class="mb-4">
-            <i class="bi bi-car-front-fill"></i> Bienvenido, {{ request.user.username }}!
-        </h1>
-        
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> 
-            Rol: <strong>{{ request.user.get_role_display }}</strong>
-        </div>
-        
-        <!-- Estadísticas -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Autos</h5>
-                        <h2 class="text-primary">{{ productos_count }}</h2>
-                        <a href="/productos/" class="btn btn-sm btn-primary">Ver</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Clientes</h5>
-                        <h2 class="text-success">{{ clientes_count }}</h2>
-                        <a href="/clientes/" class="btn btn-sm btn-success">Ver</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Ventas</h5>
-                        <h2 class="text-warning">{{ ventas_count }}</h2>
-                        <a href="/ventas/" class="btn btn-sm btn-warning">Ver</a>
-                    </div>
-                </div>
-            </div>
-            
-            {% if request.user.role == 'admin' %}
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Usuarios</h5>
-                        <h2 class="text-info">{{ usuarios_count }}</h2>
-                        <a href="{% url 'listar_usuarios' %}" class="btn btn-sm btn-info">Ver</a>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-        </div>
+<div class="container mt-5">
+
+    <!-- Título del Dashboard -->
+    <h1 class="dashboard-title">
+        <i class="bi bi-speedometer2"></i>
+        Bienvenido, {{ request.user.username }}!
+    </h1>
+
+    <!-- Rol del usuario -->
+    <div class="alert alert-info rounded-pill px-4 py-2">
+        <i class="bi bi-person-badge"></i>
+        Rol: <strong>{{ request.user.get_role_display }}</strong>
     </div>
+
+    <!-- Tarjetas del Dashboard -->
+    <div class="row g-4 mt-4">
+
+        <!-- Autos -->
+        <div class="col-md-3">
+            <div class="dashboard-card">
+                <h5>Autos</h5>
+                <h2 style="color:#38bdf8;">{{ productos_count }}</h2>
+                <a href="/productos/" class="btn btn-primary btn-sm">Ver</a>
+            </div>
+        </div>
+
+        <!-- Clientes -->
+        <div class="col-md-3">
+            <div class="dashboard-card">
+                <h5>Clientes</h5>
+                <h2 style="color:#4ade80;">{{ clientes_count }}</h2>
+                <a href="/clientes/" class="btn btn-success btn-sm">Ver</a>
+            </div>
+        </div>
+
+        <!-- Ventas -->
+        <div class="col-md-3">
+            <div class="dashboard-card">
+                <h5>Ventas</h5>
+                <h2 style="color:#fbbf24;">{{ ventas_count }}</h2>
+                <a href="/ventas/" class="btn btn-warning btn-sm text-dark">Ver</a>
+            </div>
+        </div>
+
+        {% if request.user.role == 'admin' %}
+        <!-- Usuarios -->
+        <div class="col-md-3">
+            <div class="dashboard-card">
+                <h5>Usuarios</h5>
+                <h2 style="color:#60a5fa;">{{ usuarios_count }}</h2>
+                <a href="{% url 'listar_usuarios' %}" class="btn btn-info btn-sm">Ver</a>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
 </div>
 {% endblock %}

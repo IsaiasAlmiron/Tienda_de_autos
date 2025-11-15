@@ -14,6 +14,8 @@ urlpatterns = [
     path('clientes/<str:pk>/editar/', views.ClienteUpdateView.as_view(), name='cliente_update'),
     path('clientes/<str:pk>/eliminar/', views.ClienteDeleteView.as_view(), name='cliente_delete'),
 
+    # Venta
+    path('exportar/ventas/pdf/', views.exportar_ventas_pdf, name='exportar_ventas_pdf'),
 
   path('marcas/', MarcaListView.as_view(), name='marca_list'),
     path('marcas/nuevo/', MarcaCreateView.as_view(), name='marca_create'),

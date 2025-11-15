@@ -3,145 +3,117 @@
 {% block title %}Editar Usuario - Tienda Autos{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-8">
-        <div class="card shadow">
-            <div class="card-header bg-warning text-dark">
-                <h5 class="mb-0">
-                    <i class="bi bi-pencil-square"></i> Editar Usuario: {{ usuario.username }}
-                </h5>
-            </div>
-            <div class="card-body">
-                {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                        <i class="bi bi-info-circle"></i> {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<div class="form-wrapper">
+    <div class="form-card">
+        <h2 class="form-title">
+            <i class="bi bi-pencil-square"></i> Editar Usuario: {{ usuario.username }}
+        </h2>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    <i class="bi bi-info-circle"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            <!-- Información de Cuenta -->
+            <fieldset class="mb-4">
+                <legend class="section-legend">Información de Cuenta</legend>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.username.label_tag }}
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger small mt-1">
+                                <i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}
+                            </div>
+                        {% endif %}
                     </div>
-                {% endfor %}
-                {% endif %}
-                
-                <form method="post" novalidate>
-                    {% csrf_token %}
-                    
-                    <!-- Información de Cuenta -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 border-bottom pb-2">Información de Cuenta</legend>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                {{ form.username.label_tag }}
-                                {{ form.username }}
-                                {% if form.username.errors %}
-                                    <div class="text-danger small mt-1">
-                                        <i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}
-                                    </div>
-                                {% endif %}
+
+                    <div class="col-md-6 mb-3">
+                        {{ form.email.label_tag }}
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small mt-1">
+                                <i class="bi bi-exclamation-circle"></i> {{ form.email.errors.0 }}
                             </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                {{ form.email.label_tag }}
-                                {{ form.email }}
-                                {% if form.email.errors %}
-                                    <div class="text-danger small mt-1">
-                                        <i class="bi bi-exclamation-circle"></i> {{ form.email.errors.0 }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </fieldset>
-                    
-                    <!-- Información Personal -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 border-bottom pb-2">Información Personal</legend>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                {{ form.first_name.label_tag }}
-                                {{ form.first_name }}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                {{ form.last_name.label_tag }}
-                                {{ form.last_name }}
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                {{ form.phone.label_tag }}
-                                {{ form.phone }}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                {{ form.role.label_tag }}
-                                {{ form.role }}
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            {{ form.address.label_tag }}
-                            {{ form.address }}
-                        </div>
-                    </fieldset>
-                    
-                    <!-- Permisos -->
-                    <fieldset class="mb-4">
-                        <legend class="h6 border-bottom pb-2">Permisos</legend>
-                        
-                        <div class="form-check mb-3">
-                            {{ form.is_active }}
-                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                {{ form.is_active.label }}
-                            </label>
-                        </div>
-                        
-                        <div class="form-check mb-3">
-                            {{ form.is_staff }}
-                            <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">
-                                {{ form.is_staff.label }}
-                            </label>
-                        </div>
-                    </fieldset>
-                    
-                    <!-- Botones -->
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-between">
-                        <div>
-                            <a href="{% url 'listar_usuarios' %}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Cancelar
-                            </a>
-                        </div>
-                        <div>
-                            <a href="{% url 'eliminar_usuario' usuario.id %}" class="btn btn-danger">
-                                <i class="bi bi-trash"></i> Eliminar
-                            </a>
-                            <button type="submit" class="btn btn-warning">
-                                <i class="bi bi-check-circle"></i> Guardar Cambios
-                            </button>
-                        </div>
+                        {% endif %}
                     </div>
-                </form>
+                </div>
+            </fieldset>
+
+            <!-- Información Personal -->
+            <fieldset class="mb-4">
+                <legend class="section-legend">Información Personal</legend>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.first_name.label_tag }}
+                        {{ form.first_name }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        {{ form.last_name.label_tag }}
+                        {{ form.last_name }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.phone.label_tag }}
+                        {{ form.phone }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        {{ form.role.label_tag }}
+                        {{ form.role }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form.address.label_tag }}
+                    {{ form.address }}
+                </div>
+            </fieldset>
+
+            <!-- Permisos -->
+            <fieldset class="mb-4">
+                <legend class="section-legend">Permisos</legend>
+
+                <div class="form-check mb-3">
+                    {{ form.is_active }}
+                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                        {{ form.is_active.label }}
+                    </label>
+                </div>
+
+                <div class="form-check mb-3">
+                    {{ form.is_staff }}
+                    <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">
+                        {{ form.is_staff.label }}
+                    </label>
+                </div>
+            </fieldset>
+
+            <!-- Botones -->
+            <div class="form-actions">
+                <a href="{% url 'listar_usuarios' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+                <a href="{% url 'eliminar_usuario' usuario.id %}" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Eliminar
+                </a>
+                <button type="submit" class="btn btn-warning">
+                    <i class="bi bi-check-circle"></i> Guardar Cambios
+                </button>
             </div>
-        </div>
+        </form>
     </div>
 </div>
-
-<style>
-    .form-control, .form-select {
-        border-radius: 0.375rem;
-    }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    }
-    
-    fieldset legend {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #212529;
-        margin-bottom: 1rem;
-    }
-</style>
-
 {% endblock %}

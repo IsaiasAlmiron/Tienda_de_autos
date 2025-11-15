@@ -1,25 +1,73 @@
 {% extends 'base.html' %}
 {% block title %}Listado de Clientes{% endblock %}
+
 {% block content %}
-<h2>Listado de Clientes</h2>
-<a href="{% url 'cliente_create' %}" class="btn btn-primary mb-2">Nuevo Cliente</a>
-<table class="table table-bordered table-striped">
-    <tr><th>RUC</th><th>Nombre</th><th>Apellido</th><th>Teléfono</th><th>Email</th><th>Dirección</th><th>Acciones</th></tr>
-    {% for c in clientes %}
-    <tr>
-        <td>{{ c.ruc }}</td>
-        <td>{{ c.nombre }}</td>
-        <td>{{ c.apellido }}</td>
-        <td>{{ c.telefono }}</td>
-        <td>{{ c.email }}</td>
-        <td>{{ c.direccion }}</td>
-        <td>
-            <a href="{% url 'cliente_update' c.ruc %}" class="btn btn-sm btn-warning">Editar</a>
-            <a href="{% url 'cliente_delete' c.ruc %}" class="btn btn-sm btn-danger">Eliminar</a>
-        </td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="7" class="text-center">No hay clientes registrados.</td></tr>
-    {% endfor %}
-</table>
+<div class="container mt-4 list-page">
+
+    <!-- Encabezado de la lista -->
+    <div class="list-header d-flex flex-wrap align-items-center justify-content-between mb-3">
+        <div>
+            <h2 class="list-title">Clientes</h2>
+            <p class="list-subtitle mb-0">
+                Gestioná tus clientes y sus datos de contacto.
+            </p>
+        </div>
+        <a href="{% url 'cliente_create' %}" class="btn btn-primary mt-3 mt-md-0">
+            <i class="bi bi-person-plus"></i> Nuevo Cliente
+        </a>
+    </div>
+
+    {% if clientes %}
+        <div class="row g-3">
+            {% for c in clientes %}
+            <div class="col-md-6 col-lg-4">
+                <div class="entity-card">
+                    <div class="entity-card__header">
+                        <h5 class="entity-name">
+                            {{ c.nombre }} {{ c.apellido }}
+                        </h5>
+                        <span class="entity-tag">
+                            RUC {{ c.ruc }}
+                        </span>
+                    </div>
+
+                    <div class="entity-card__body">
+                        <p class="entity-line">
+                            <i class="bi bi-telephone"></i>
+                            {{ c.telefono|default:"Sin teléfono" }}
+                        </p>
+                        <p class="entity-line">
+                            <i class="bi bi-envelope"></i>
+                            {{ c.email|default:"Sin email" }}
+                        </p>
+                        <p class="entity-line">
+                            <i class="bi bi-geo-alt"></i>
+                            {{ c.direccion|default:"Sin dirección" }}
+                        </p>
+                    </div>
+
+                    <div class="entity-card__actions">
+                        <a href="{% url 'cliente_update' c.ruc %}" class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                        <a href="{% url 'cliente_delete' c.ruc %}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i> Eliminar
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-people"></i>
+            <h5>No hay clientes registrados.</h5>
+            <p>Comenzá agregando tu primer cliente.</p>
+            <a href="{% url 'cliente_create' %}" class="btn btn-primary">
+                <i class="bi bi-person-plus"></i> Nuevo Cliente
+            </a>
+        </div>
+    {% endif %}
+
+</div>
 {% endblock %}

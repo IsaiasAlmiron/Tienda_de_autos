@@ -18,6 +18,8 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from io import BytesIO
 from .forms import CustomUserCreationForm,CustomUserEditForm,DetalleVentaForm,VentaForm  # ← AGREGAR
 from .models import Marca
+from .models import Venta
+from django.utils import timezone
 from django.forms import modelformset_factory
 
 class MarcaListView(LoginRequiredMixin, ListView):
@@ -168,12 +170,13 @@ def exportar_productos_csv(request):
         writer.writerow([
             producto.id,
             producto.nombre,
-            producto.modelo.nombre if producto.modelo else 'N/A',
+            producto.modelo if producto.modelo else 'N/A',  # 👈 acá el cambio
             f"${producto.precio}",
-            producto.stock
+            producto.stock,
         ])
     
     return response
+
 
 
 @login_required(login_url='login')
@@ -224,15 +227,15 @@ def exportar_productos_pdf(request):
     
     # Datos
     data = [['ID', 'Nombre', 'Modelo', 'Precio', 'Stock']]
-    
+
     for producto in Producto.objects.all():
         data.append([
-            str(producto.id),
-            producto.nombre,
-            producto.modelo.nombre if producto.modelo else 'N/A',
-            f"${producto.precio}",
-            str(producto.stock)
-        ])
+        str(producto.id),
+        producto.nombre,
+        producto.modelo if producto.modelo else 'N/A',
+        f"${producto.precio}",
+        str(producto.stock),
+    ])
     
     # Tabla
     table = Table(data, colWidths=[0.8*inch, 2.5*inch, 1.5*inch, 1*inch, 1*inch])
@@ -253,6 +256,95 @@ def exportar_productos_pdf(request):
     buffer.seek(0)
     response = HttpResponse(buffer, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="productos.pdf"'
+    return response
+
+@login_required(login_url='login')
+def exportar_ventas_pdf(request):
+    """Exportar listado de ventas a PDF (resumen por venta)"""
+    # Respuesta HTTP como PDF descargable
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="reporte_ventas.pdf"'
+
+    # Documento base
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=A4,
+        leftMargin=40,
+        rightMargin=40,
+        topMargin=40,
+        bottomMargin=40,
+    )
+
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Título
+    titulo = Paragraph("Reporte de Ventas", styles['Heading1'])
+    fecha_gen = Paragraph(
+        f"Generado el {timezone.localtime(timezone.now()).strftime('%d/%m/%Y %H:%M')}",
+        styles['Normal']
+    )
+
+    elements.append(titulo)
+    elements.append(fecha_gen)
+    elements.append(Spacer(1, 12))
+
+    # Encabezados de tabla
+    data = [['ID', 'Fecha', 'Cliente', 'Vendedor', 'Total (Gs)']]
+
+    # Consultar ventas (con cliente y vendedor)
+    ventas = (
+        Venta.objects
+        .select_related('cliente', 'vendedor')
+        .order_by('-fecha')
+    )
+
+    for venta in ventas:
+        data.append([
+            str(venta.id),
+            venta.fecha.strftime('%d/%m/%Y %H:%M'),
+            str(venta.cliente),
+            str(venta.vendedor),
+            f"{venta.total:,.2f}",
+        ])
+
+    # Si no hay ventas, agregar una fila indicando eso
+    if len(data) == 1:
+        data.append(['-', '-', 'Sin ventas registradas', '-', '-'])
+
+    # Crear tabla
+    table = Table(
+        data,
+        colWidths=[40, 90, 140, 120, 80],
+        hAlign='LEFT',
+    )
+
+    # Estilos de la tabla
+    style = TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1f2937')),  # header
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('ALIGN', (-1, 1), (-1, -1), 'RIGHT'),
+
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('FONTSIZE', (0, 1), (-1, -1), 9),
+
+        ('GRID', (0, 0), (-1, -1), 0.25, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1),
+            [colors.whitesmoke, colors.HexColor('#e5e7eb')]),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+        ('TOPPADDING', (0, 0), (-1, 0), 6),
+    ])
+
+    table.setStyle(style)
+    elements.append(table)
+
+    # Construir el PDF
+    doc.build(elements)
     return response
 
 
